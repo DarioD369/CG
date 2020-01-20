@@ -1,0 +1,1 @@
+mongoURI: 'mongodb+srv://Administrador:12345@cgweb-lxsy0.azure.mongodb.net/test?retryWrites=true&w=majority'
