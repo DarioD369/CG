@@ -34,7 +34,7 @@ router.post('/users/signup', async (req,res)=> {
     } else {
         const emailUser= await User.findOne({email: email});
         if(emailUser) {
-            res.flash('error_msg', 'Usuario Regristrado');
+            res.flash('error_msg', 'Usted ya esta registrado');
             res.redirect('/user/signup');
         }
         const newUser = new User({user, email, password});
@@ -47,21 +47,16 @@ router.post('/users/signup', async (req,res)=> {
     }
 })
 
-//Ingreso de Usuario
+//Ingreso de Usuario _ Login
 router.get('/users/login',(req,res)=> {
     res.render('users/login')
 });
 
 router.post('/users/login', passport.authenticate('local', {
-    successRedirect: '/notes',
+    successRedirect: '/',
     failureRedirect: '/users/login',
     failureFlash: true
 }))
-
-router.get('/user', async (req,res) => {
-    const datas= await User.find({user: req.user.id}).sort({date: 'desc'});
-    res.render('users/user.hbs', {datas})
-});
 
 router.get('/user/logout', (req, res) => {
     req.logout();

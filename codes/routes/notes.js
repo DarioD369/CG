@@ -35,6 +35,11 @@ router.post('/notes/history', isAuthenticated, async (req, res) => {
     }  
 });
 
+router.get('/user', async (req,res) => {
+    const datas= await User.find({user: req.user.id}).sort({date: 'desc'});
+    res.render('users/user.hbs', {datas})
+});
+
 router.put('/notes/edit/:id', async (req, res)=> {
     const {title,route}=req.body;
     await Note.findByIdAndUpdate(req.params.id, {title,route});//Metodo para buscar apartir del id
