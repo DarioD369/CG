@@ -5,11 +5,14 @@ const Note = require('../models/Project');//Indica la forma de los datos
 const { isAuthenticated } = require('../helpers/auth'); //Si esta logeado continua con el proceso
 
 
-router.get('/history', isAuthenticated, (req, res) => {
-    res.render('notes/history');
+//Mostrar Proyectos
+router.get('/projects/history', isAuthenticated, async (req,res) => {
+    const datas= await Note.find({user: req.user.id}).sort({date: 'desc'});
+    res.render('notes/history.hbs', {datas})
 });
 
-router.post('/notes/history', isAuthenticated, async (req, res) => {
+//Seccion para agregar proyectos a la base de Datos Project -------Lo realiza por medio de la pagina por el metodo POST
+router.post('/projects/history/edit', isAuthenticated, async (req, res) => {
     const {title,route}=req.body;
     const errors=[];
     if(!title){
@@ -19,7 +22,7 @@ router.post('/notes/history', isAuthenticated, async (req, res) => {
         errors.push({text:'Falta la ruta del proyecto'})
     }
     if(errors.length > 0){
-        res.render('notes/history', {
+        res.render('notes/add', {
             errors,
             title,
             route
@@ -31,26 +34,23 @@ router.post('/notes/history', isAuthenticated, async (req, res) => {
         console.log(newHistory);
         await newHistory.save();
         req.flash('success_msg', 'Proyecto Agregado');
-        res.redirect('/user');
+        res.redirect('/projects/history');
     }  
 });
 
-router.get('/user', async (req,res) => {
-    const datas= await User.find({user: req.user.id}).sort({date: 'desc'});
-    res.render('users/user.hbs', {datas})
-});
-
-router.put('/notes/edit/:id', async (req, res)=> {
+//Realizar modifiaciones en la ruta del proyecto
+router.put('/notes/edit/:id', isAuthenticated, async (req, res)=> {
     const {title,route}=req.body;
-    await Note.findByIdAndUpdate(req.params.id, {title,route});//Metodo para buscar apartir del id
+    await Note.findByIdAndUpdate(req.params.id, {title,route});//Metodo para buscar apartir del id y realizar modificaciones
     req.flash('success_msg', 'Proyecto Actualizado')
-    res.redirect('/history');
+    res.redirect('/projects/history');
 });
 
-router.delete('/notes/delete/:id', async (req, res)=>{
+//Borrar Proyecto
+router.delete('/notes/delete/:id', isAuthenticated, async (req, res)=>{
     await Note.findByIdAndDelete(req.params.id);
     req.flash('success_msg', 'Proyecto Eliminado')
-    res.redirect('/notes')
+    res.redirect('/projects/history')
 })
 
 

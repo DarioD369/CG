@@ -41,7 +41,6 @@ router.post('/users/signup', async (req,res)=> {
         console.log(newUser);
         newUser.password=await newUser.encryptPassword(password);
         await newUser.save();
-        res.redirect('/');
         req.flash('success_msg','Estas registrado');
         res.redirect('/users/login');
     }
