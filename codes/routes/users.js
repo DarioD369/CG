@@ -1,44 +1,72 @@
 const router =require('express').Router();
-const Note = require('../models/Note')
+const Note = require('../models/Project');
+const User = require('../models/User');
+const passport = require('passport');
 
-router.get('/users/singup',(req,res)=> {
-    res.render('users/singup')
+//Registro de Usuario
+router.get('/users/signup',(req,res)=> {
+    res.render('users/signup')
 });
 
-router.post('/users/singup', async (req,res)=> {
-    const { user, password}= req.body;
+router.post('/users/signup', async (req,res)=> {
+    const { user, email, password, confirm}= req.body;
     const errors = [];
+    if(password != confirm){
+        errors.push({text: 'Contraseñas no coinciden'})
+    }
     if(!user){
         errors.push({text: 'No ha registrado un usario'})
+    }
+    if(!email){
+        errors.push({text: 'No ha registrado un correo'})
     }
     if(!password){
         errors.push({text: 'Falta Contraseña'})
     }
     if(errors.length > 0) {
-        res.render('/', {
+        res.render('users/signup', {
             errors,
             user,
-            password
+            email,
+            password,
+            confirm
         });
     } else {
-        const newUser = new Note({user, password});
+        const emailUser= await User.findOne({email: email});
+        if(emailUser) {
+            res.flash('error_msg', 'Usuario Regristrado');
+            res.redirect('/user/signup');
+        }
+        const newUser = new User({user, email, password});
         console.log(newUser);
+        newUser.password=await newUser.encryptPassword(password);
         await newUser.save();
-        res.redirect('/Ok');
+        res.redirect('/');
+        req.flash('success_msg','Estas registrado');
+        res.redirect('/users/login');
     }
 })
 
+//Ingreso de Usuario
 router.get('/users/login',(req,res)=> {
     res.render('users/login')
 });
 
-router.post('/users/login',(req,res)=> {
-    console.log(req.body);
-    res.send('Ok');
-})
-router.get('/Ok',(req,res)=> {
-    res.send('Dato Obtenido')
+router.post('/users/login', passport.authenticate('local', {
+    successRedirect: '/notes',
+    failureRedirect: '/users/login',
+    failureFlash: true
+}))
+
+router.get('/user', async (req,res) => {
+    const datas= await User.find({user: req.user.id}).sort({date: 'desc'});
+    res.render('users/user.hbs', {datas})
 });
+
+router.get('/user/logout', (req, res) => {
+    req.logout();
+    res.redirect('/');
+})
 
 
 module.exports=router;
